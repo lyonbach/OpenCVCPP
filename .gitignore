@@ -1,0 +1,34 @@
+*.o
+*.d
+*.gch
+*.make
+Makefile
+venv/
+.vscode/
+.penvs/
+.test/
+
+# Qt Related
+*.pro.user
+
+# CMake Related
+CMakeFiles
+*.cmake
+install_manifest.txt
+Testing
+*Test*.log
+
+# Makefiles
+Makefile
+*.make
+
+# Temp Objects
+*.d
+*.o
+
+# Generated Binaries
+.build/
+build/
+
+# Python Compiled Files
+*.pyc
