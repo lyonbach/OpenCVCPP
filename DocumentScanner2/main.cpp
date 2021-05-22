@@ -11,6 +11,7 @@
 #define DPI 300
 #define PREVIEW_HEIGHT 800
 #define PREVIEW_WIDTH 640
+#define DEBUG false
 
 namespace fs = std::filesystem;
 
@@ -25,6 +26,16 @@ struct ContoursInfo
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
 };
+
+void imshowAndWaitKey(cv::Mat *imageData)
+{
+    cv::Mat temp;
+    cv::copyTo(*imageData, temp, cv::Mat::ones(imageData->size(), imageData->type()));
+    float coef = (float)PREVIEW_WIDTH / temp.size().width;
+    cv::resize(temp, temp, cv::Size(PREVIEW_WIDTH, temp.size().height * coef));
+    cv::imshow("Debug", temp);
+    cv::waitKey(0);
+}
 
 std::string getTargetImageName(std::string sourceImageFullName, int imageNo=-1)
 {
@@ -48,16 +59,24 @@ void preProcessImageData(cv::Mat *imgIn, cv::Mat *imgOut)
 
     // Convert image to grayscale
     cv::cvtColor(*imgIn, imgG, cv::COLOR_BGR2GRAY);
+    if (DEBUG)
+        imshowAndWaitKey(&imgG);
 
     // Blur image
     cv::GaussianBlur(imgG, imgBlrG, cv::Size(9, 9), 3.0);
+    if (DEBUG)
+        imshowAndWaitKey(&imgBlrG);
 
     // Apply canny
-    cv::Canny(imgBlrG, imgBlrCn, 25, 75, 3);
+    cv::Canny(imgBlrG, imgBlrCn, 25, 75);
+    if (DEBUG)
+        imshowAndWaitKey(&imgBlrCn);
 
     // Apply dilation
     cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
     cv::dilate(imgBlrCn, *imgOut, kernel);
+    if (DEBUG)
+        imshowAndWaitKey(imgOut);
 }
 
 void getContourShapes(std::vector<std::vector<cv::Point>> *contours, std::vector<std::vector<cv::Point>> *contourShapes)
@@ -76,7 +95,7 @@ void getContourShapes(std::vector<std::vector<cv::Point>> *contours, std::vector
     }
 }
 
-void computeContoursInfo(cv::Mat *imgIn, ContoursInfo* contoursInfo, float areaThreshold=2500.0)
+void computeContoursInfo(cv::Mat *imgIn, ContoursInfo* contoursInfo, float areaThreshold=1500.0)
 {
 
     std::vector<std::vector<cv::Point>> allContours;
@@ -109,7 +128,7 @@ void reorderContourPoints(std::vector<cv::Point> *contour, std::vector<cv::Point
     reorderedContour->push_back(contour->at(std::max_element(summation.begin(), summation.end()) - summation.begin()));
 }
 
-std::vector<ProcessedImageInfo> processOneImage(std::string imageFullPath)
+void processOnePhoto(std::string imageFullPath, std::vector<ProcessedImageInfo> *processedImages)
 {
 
     // Necessary definitions
@@ -130,7 +149,7 @@ std::vector<ProcessedImageInfo> processOneImage(std::string imageFullPath)
 
     // At this point we must have only have rectangular contours.
     std::cout << "Found " << contourShapes.size() << " document(s)." << std::endl;
-    std::vector<ProcessedImageInfo> processedImages;
+
     int imageNo = -1;
     for(std::vector<cv::Point> contour : contourShapes)
     {
@@ -153,9 +172,8 @@ std::vector<ProcessedImageInfo> processOneImage(std::string imageFullPath)
         if (contourShapes.size() > 1) imageNo++;
         cv::resize(imageDataFlat, imageToSave, cv::Size(saveWidth, saveHeight));
         cv::rotate(imageToSave, imageToSave, cv::ROTATE_90_CLOCKWISE);
-        processedImages.push_back({getTargetImageName(imageFullPath, imageNo), imageToSave});
+        processedImages->push_back({getTargetImageName(imageFullPath, imageNo), imageToSave});
     }
-    return processedImages;
 }
 
 bool getUserDecision(cv::Mat* imageDataOriginal, ProcessedImageInfo *processedImageInfo)
@@ -266,9 +284,12 @@ int main(int argc, char *argv[])
     // Process all items.
     for (auto &imageFullPath : sortedImages)
     {
-        std::cout << "Finding documents in:\n\t" << imageFullPath << std::endl;
+
         // One photo could contain more than one processed image (document).
-        std::vector<ProcessedImageInfo> processedImages = processOneImage(imageFullPath);
+        std::cout << "Finding documents in:\n\t" << imageFullPath << std::endl;
+        std::vector<ProcessedImageInfo> processedImages;
+        processOnePhoto(imageFullPath, &processedImages);
+
         for (ProcessedImageInfo processedImageInfo : processedImages)
         {
             if (processedImageInfo.imageData.empty())
