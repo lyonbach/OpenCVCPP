@@ -9,7 +9,6 @@ void _imShow(cv::Mat &image, cv::String windowName="Image")
     cv::imshow(windowName, image);
     while(cv::waitKey(0) != 113){};
     cv::destroyWindow(windowName);
-
 }
 
 std::vector<cv::Point> getSortedPoints(std::vector<cv::Point> contour)
@@ -112,7 +111,7 @@ int main(int argc, char const *argv[])
     _imShow(imageOriginal);  // TEMP!
 
     std::cout << "Step 1: Edge detection." << std::endl;
-    cv::cvtColor(imageOriginal, imageGrayScale, CV_BGR2GRAY);  // Convert to grayscale.
+    cv::cvtColor(imageOriginal, imageGrayScale, cv::COLOR_BGR2GRAY);  // Convert to grayscale.
 
     cv::GaussianBlur(imageGrayScale,  // Input image.
                      imageBlurred,    // Output image.
