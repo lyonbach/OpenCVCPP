@@ -35,11 +35,9 @@ std::string getTargetImageName(std::string sourceImageFullName, int imageNo=-1)
     }
     else
     {
-        std::cout << "here" << std::endl;
-        std::string targetImageName;
-        targetImageName = fs::path(sourceImageFullName).filename().replace_extension("");
         std::string extension = fs::path(sourceImageFullName).extension();
-        targetImageName + "_" + std::to_string(imageNo);
+        std::string targetImageName = fs::path(sourceImageFullName).filename().replace_extension("");
+        targetImageName += "_" + std::to_string(imageNo) + extension;
         return targetImageName;
     }
 }
