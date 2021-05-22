@@ -20,7 +20,6 @@ struct ProcessedImageInfo
     cv::Mat imageData;
 };
 
-
 struct ContoursInfo
 {
     std::vector<std::vector<cv::Point>> contours;
@@ -61,9 +60,6 @@ void preProcessImageData(cv::Mat *imgIn, cv::Mat *imgOut)
     cv::dilate(imgBlrCn, *imgOut, kernel);
 }
 
-/** @brief Identifies the shape of the contour.
-@param contour A pointer to the input vector of 2D points (contour vertices), stored in std::vector.
- */
 void getContourShapes(std::vector<std::vector<cv::Point>> *contours, std::vector<std::vector<cv::Point>> *contourShapes)
 {
     std::vector<cv::Point> approximation;
