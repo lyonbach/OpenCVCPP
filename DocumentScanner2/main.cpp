@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 
     if (argc < 3)
     {
-        std::cout << "At least two arguments are needed." << std::endl;
+        std::cout << "At least two arguments are needed. Input folder and output folder." << std::endl;
         return 1;
     }
     if (argc == 4)
